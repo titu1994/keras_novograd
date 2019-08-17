@@ -3,8 +3,8 @@ from keras.optimizers import Optimizer, SGD
 
 
 # Ported from https://github.com/NVIDIA/OpenSeq2Seq/blob/master/open_seq2seq/optimizers/novograd.py
-class Novograd(Optimizer):
-    """Novograd optimizer.
+class NovoGrad(Optimizer):
+    """NovoGrad optimizer.
 
     Default parameters follow those provided in the original paper.
 
@@ -30,7 +30,7 @@ class Novograd(Optimizer):
     def __init__(self, lr=0.01, beta_1=0.95, beta_2=0.98,
                  epsilon=None, decay=0., weight_decay=0.0,
                  amsgrad=False, grad_averaging=False, **kwargs):
-        super(Novograd, self).__init__(**kwargs)
+        super(NovoGrad, self).__init__(**kwargs)
 
         with K.name_scope(self.__class__.__name__):
             self.iterations = K.variable(0, dtype='int64', name='iterations')
@@ -111,5 +111,5 @@ class Novograd(Optimizer):
                   'weight_decay': self.weight_decay,
                   'grad_averaging': self.grad_averaging,
                   'amsgrad': self.amsgrad}
-        base_config = super(Novograd, self).get_config()
+        base_config = super(NovoGrad, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
