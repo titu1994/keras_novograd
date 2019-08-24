@@ -17,7 +17,7 @@ class NovoGrad(Optimizer):
         epsilon: float >= 0. Fuzz factor. If `None`, defaults to `K.epsilon()`.
         decay: float >= 0. Learning rate decay over each update.
         weight_decay: Weight decay weight.
-        amsbound: boolean. Whether to apply the AMSBound variant of this
+        amsgrad: boolean. Whether to apply the AMSBound variant of this
             algorithm.
 
     # References
