@@ -104,7 +104,7 @@ class NovoGrad(OptimizerV2):
         t = tf.cast(self.iterations + 1, var_dtype)
 
         # compute ema for grads^2 for each layer
-        g_2 = tf.reduce_sum(tf.square(tf.cast(grad, tf.float32)))
+        g_2 = tf.reduce_sum(tf.square(tf.cast(grad, var_dtype)))
         g_ema_new = tf.cond(tf.equal(grad_ema, 0.),
                             lambda: g_2,
                             lambda: grad_ema * beta_2_t + g_2 * (1.0 - beta_2_t))
@@ -116,6 +116,7 @@ class NovoGrad(OptimizerV2):
             v_t = tf.compat.v1.assign(vhat, vhat)
 
         g_ema_new = tf.cast(g_ema_new, var_dtype)
+        print(var_dtype)
         grad *= 1.0 / (tf.sqrt(g_ema_new) + epsilon_t)
 
         # weight decay
