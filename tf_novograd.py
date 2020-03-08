@@ -36,7 +36,7 @@ class NovoGrad(OptimizerV2):
     def __init__(self,
                  learning_rate=0.001,
                  beta_1=0.95,
-                 beta_2=0.98,
+                 beta_2=0.5,
                  epsilon=None,
                  weight_decay=0.0,
                  amsgrad=False,
