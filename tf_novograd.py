@@ -116,7 +116,6 @@ class NovoGrad(OptimizerV2):
             v_t = tf.compat.v1.assign(vhat, vhat)
 
         g_ema_new = tf.cast(g_ema_new, var_dtype)
-        print(var_dtype)
         grad *= 1.0 / (tf.sqrt(g_ema_new) + epsilon_t)
 
         # weight decay
