@@ -41,6 +41,9 @@ class NovoGrad(OptimizerV2):
                  weight_decay=0.0,
                  amsgrad=False,
                  grad_averaging=False,
+                 luc=False,
+                 luc_trust=1e-3,
+                 luc_epsilon=1e-8,
                  name='NovoGrad', **kwargs):
         super(NovoGrad, self).__init__(name, **kwargs)
 
@@ -52,6 +55,9 @@ class NovoGrad(OptimizerV2):
         self.amsgrad = amsgrad
         self.grad_averaging = grad_averaging
         self.weight_decay = weight_decay
+        self.luc = luc
+        self.luc_trust = luc_trust
+        self.luc_epsilon = luc_epsilon
 
     def _create_slots(self, var_list):
         for var in var_list:
@@ -127,15 +133,30 @@ class NovoGrad(OptimizerV2):
             grad *= (1.0 - beta_1_t)
 
         m_t = beta_1_t * m + grad  # velocity
-        m_t = tf.compat.v1.assign(m, m_t)
 
+        m_t = tf.compat.v1.assign(m, m_t)
         grad_t = tf.compat.v1.assign(grad_ema, g_ema_new)
 
-        with tf.control_dependencies([m_t, v_t, grad_t]):
-            p_t = var - lr_t * m_t
-            param_update = tf.compat.v1.assign(var, p_t)
+        if self.luc:
+            # Clip update so that updates are less than eta*weights
+            data_norm = tf.reduce_sum(tf.square(var))
+            grad_norm = tf.reduce_sum(tf.square(m_t))
 
-            return tf.group(*[param_update, m_t, v_t, grad_t])
+            luc_factor = self.luc_trust * data_norm / (grad_norm + self.luc_epsilon)
+            luc_factor = tf.minimum(luc_factor, lr_t)
+
+            with tf.control_dependencies([m_t, v_t, grad_t]):
+                p_t = var - luc_factor * m_t
+                param_update = tf.compat.v1.assign(var, p_t)
+
+                return tf.group(*[param_update, m_t, v_t, grad_t])
+
+        else:
+            with tf.control_dependencies([m_t, v_t, grad_t]):
+                p_t = var - lr_t * m_t
+                param_update = tf.compat.v1.assign(var, p_t)
+
+                return tf.group(*[param_update, m_t, v_t, grad_t])
 
     def _resource_apply_sparse(self, grad, handle, indices):
         raise NotImplementedError("Sparse data is not supported yet")
