@@ -44,7 +44,9 @@ class NovoGrad(OptimizerV2):
                  luc=False,
                  luc_trust=1e-3,
                  luc_epsilon=1e-8,
-                 name='NovoGrad', **kwargs):
+                 grad_norm=False,
+                 name='NovoGrad',
+                 **kwargs):
         super(NovoGrad, self).__init__(name, **kwargs)
 
         self._set_hyper('learning_rate', kwargs.get('lr', learning_rate))
@@ -58,6 +60,7 @@ class NovoGrad(OptimizerV2):
         self.luc = luc
         self.luc_trust = luc_trust
         self.luc_epsilon = luc_epsilon
+        self.grad_norm = grad_norm
 
     def _create_slots(self, var_list):
         for var in var_list:
@@ -133,6 +136,10 @@ class NovoGrad(OptimizerV2):
             grad *= (1.0 - beta_1_t)
 
         m_t = beta_1_t * m + grad  # velocity
+
+        if self.grad_norm:
+            m_t_norm = tf.reduce_sum(tf.square(tf.cast(m_t, var_dtype)))
+            m_t /= m_t_norm
 
         m_t = tf.compat.v1.assign(m, m_t)
         grad_t = tf.compat.v1.assign(grad_ema, g_ema_new)
